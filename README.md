@@ -1,2 +1,2 @@
 # ts-axios
-TypeScript 实现 Axios
+使用 TypeScript 实现 Axios
