@@ -28,4 +28,9 @@ router.get('/simple/get', function (req, res) {
     })
 })
 
+// 返回入参内容
+router.get('/base/get', function (req, res) {
+    res.json(req.query)
+})
+
 module.exports = router

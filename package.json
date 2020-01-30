@@ -34,7 +34,7 @@
     "precommit": "lint-staged",
     "postinstall": "ts-node tools/init",
     "travis-deploy-once": "travis-deploy-once",
-    "dev": "node examples/build/server.js"
+    "dev": "nodemon examples/build/server.js --watch examples/build"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
@@ -125,6 +125,7 @@
     "ts-loader": "^5.3.3",
     "tslint": "^5.11.0",
     "express": "^4.16.4",
+    "nodemon": "^2.0.2",
     "body-parser": "^1.18.3",
     "ejs": "^3.0.1"
   }
