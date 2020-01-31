@@ -1,5 +1,5 @@
 
-import { isDate, isObject } from './utils'
+import { isDate, isPlainObject } from './utils'
 
 // encode 编码
 function encode(val: string): string {
@@ -54,7 +54,7 @@ export function buildURL(url: string, params?: any): string {
         values.forEach((val) => {
             if(isDate(val)) { // 日期类型处理
                 val = val.toISOString()
-            }else if(isObject(val)) { // 对象类型处理
+            }else if(isPlainObject(val)) { // 对象类型处理
                 val = JSON.stringify(val)
             }
             parts.push(`${encode(key)}=${encode(val)}`)
