@@ -25,20 +25,30 @@ export interface AxiosRequestConfig {
     // 指定响应的数据类型
     // type XMLHttpRequestResponseType = "" | "arraybuffer" | "blob" | "document" | "json" | "text";
     responseType?: XMLHttpRequestResponseType
+    timeout?: number
 }
 
-// 数据 res 接口定义
+// 响应数据 res 接口定义
 export interface AxiosResponse {
     data: any
     status: number
     statusText: string
     headers: any
     config: AxiosRequestConfig
-    request: any // XMLHttpRequest类型
+    request: any // XMLHttpRequest
 }
 
 // axios 函数返回的是一个 Promise 对象
 // 那么 resolve 函数中的参数就是一个 AxiosResponse 类型
 export interface AxiosPromise extends Promise<AxiosResponse> {
 
+}
+
+// 错误信息 error 接口定义
+export interface AxiosError extends Error {
+    isAxiosError: boolean
+    config: AxiosRequestConfig
+    code?: string | null
+    request?: any // XMLHttpRequest
+    response?: AxiosResponse
 }

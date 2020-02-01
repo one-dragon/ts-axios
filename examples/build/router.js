@@ -22,25 +22,26 @@ router.get('/', function (req, res) {
 
 
 /*=====================接口=====================*/
+// simple
 router.get('/simple/get', function (req, res) {
     res.json({
         msg: `hello world`
     })
 })
 
+
+
+// base
 // 返回入参内容
 router.get('/base/get', function (req, res) {
     res.json(req.query)
 })
-
-
 // 传入json，并返回
 router.post('/base/post', function (req, res) {
     console.log('req.body========')
     console.log(req.body)
     res.json(req.body)
 })
-
 // 传入buffer，并返回
 router.post('/base/buffer', function (req, res) {
     let msg = []
@@ -53,6 +54,29 @@ router.post('/base/buffer', function (req, res) {
         let buf = Buffer.concat(msg)
         res.json(buf.toJSON())
     })
+})
+
+
+
+// error
+// 返回错误码
+router.get('/error/get', function (req, res) {
+    if (Math.random() > 0.5) {
+        res.json({
+            msg: `hello world`
+        })
+    } else {
+        res.status(500)
+        res.end()
+    }
+})
+// 超时返回
+router.get('/error/timeout', function (req, res) {
+    setTimeout(() => {
+        res.json({
+            msg: `hello world`
+        })
+    }, 3000)
 })
 
 module.exports = router

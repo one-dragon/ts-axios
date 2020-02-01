@@ -14,7 +14,7 @@ function normalizeHeaderName(headers: any, normalizeName: string): void {
     })
 }
 
-// 处理 headers
+// 处理请求 headers
 // 传入 data 为普通对象时，设置 Content-Type 为 application/json
 export function processHeaders(headers: any, data: any): any {
     normalizeHeaderName(headers, 'Content-Type')
@@ -26,7 +26,7 @@ export function processHeaders(headers: any, data: any): any {
     return headers
 }
 
-// 解析 headers 生成对象
+// 解析响应 headers 字符串生成对象
 // headers: 'date: Fri, 31 Jan 2020 10:44:01 GMT↵etag: W/"d-Ssxx4FRxEutDLwo2+xkkxKc4y0k"↵connection: keep-alive↵x-powered-by: Express↵content-length: 13↵content-type: application/json; charset=utf-8↵'
 export function parseHeaders(headers: string): any {
     let parsed = Object.create(null)

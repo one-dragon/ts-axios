@@ -4,7 +4,7 @@ import { isDate, isPlainObject } from './utils'
 // encode 编码
 function encode(val: string): string {
     // 对于字符 @ : $ ,   [ ] 不encode
-    // 把'空格'转换成 '+'
+    // 并把'空格'转换成 '+'
     return encodeURIComponent(val)
         .replace(/%40/g, '@')
         .replace(/%3A/ig, ':')
