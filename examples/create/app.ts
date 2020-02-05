@@ -3,7 +3,7 @@ import axios from '../../src/index'
 import qs from 'qs'
 import { AxiosTransformer } from '../../src/types'
 
-axios({
+const instance = axios.create({
     transformRequest: [(function (data) {
         return qs.stringify(data)
     }), ...(axios.defaults.transformRequest as AxiosTransformer[])],
@@ -12,8 +12,11 @@ axios({
             data.b = 2
         }
         return data
-    }],
-    url: '/transform/post',
+    }]
+})
+
+instance({
+    url: '/create/post',
     method: 'post',
     data: {
         a: 1
