@@ -14,6 +14,10 @@ const defaults: AxiosRequestConfig = {
         }
     },
 
+    // 提供 xsrfCookieName 和 xsrfHeaderName 的默认值
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+
     timeout: 0,
 
     // 允许你在将请求数据发送到服务器之前对其进行修改，这只适用于请求方法 put、post 和 patch，

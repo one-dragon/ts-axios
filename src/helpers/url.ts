@@ -1,6 +1,11 @@
 
 import { isDate, isPlainObject } from './utils'
 
+interface URLOrigin {
+    protocol: string
+    host: string
+}
+
 // encode 编码
 function encode(val: string): string {
     // 对于字符 @ : $ ,   [ ] 不encode
@@ -73,4 +78,25 @@ export function buildURL(url: string, params?: any): string {
     }
 
     return url
+}
+
+
+// 判断 请求url和当前页面地址url 是否为同源
+export function isURLSameOrigin(requestURL: string): boolean {
+    const parsedOrigin = resolveURL(requestURL)
+    return (parsedOrigin.protocol === currentOrigin.protocol && parsedOrigin.host === currentOrigin.host)
+}
+
+const urlParsingNode = document.createElement('a')
+const currentOrigin = resolveURL(window.location.href) // 获取当前页面的协议、主机名和端口
+
+// 利用a标签特性解析地址
+function resolveURL(url: string): URLOrigin {
+    urlParsingNode.setAttribute('href', url)
+    const { protocol, host } = urlParsingNode
+
+    return {
+        protocol,
+        host
+    }
 }

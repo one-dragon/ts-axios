@@ -1,10 +1,13 @@
 
 const express = require('express')
 const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
 const webpack = require('webpack')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 const WebpackConfig = require('./webpack.config')
+
+require('./server2')
 
 const app = express()
 const ejs = require('ejs');
@@ -23,7 +26,11 @@ app.use(webpackDevMiddleware(compiler, {
 
 app.use(webpackHotMiddleware(compiler))
 
-app.use(express.static(EXAMPLES_PATH))
+app.use(express.static(EXAMPLES_PATH, {
+    setHeaders(res) {
+        res.cookie('XSRF-TOKEN-D', '1234abc')
+    }
+}))
 
 // 把./views目录设置为模板文件的根，ejs、html文件模板放在view目录中
 app.set('views', __dirname + '/views');
@@ -34,6 +41,7 @@ app.engine('html', ejs.renderFile);
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(cookieParser())
 app.use(router)
 
 const port = process.env.PORT || 8080

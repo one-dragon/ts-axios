@@ -35,6 +35,9 @@ export interface AxiosRequestConfig {
     transformResponse?: AxiosTransformer | AxiosTransformer[]
     // axios.CancelToken 是一个类，直接把它实例化的对象传给请求配置中的 cancelToken 属性，来取消请求
     cancelToken?: CancelToken
+    withCredentials?: boolean
+    xsrfCookieName?: string // 表示存储 token 的 cookie 名称
+    xsrfHeaderName?: string // 表示请求 headers 中 token 对应的 header 名称
 
 
     [propName: string]: any
