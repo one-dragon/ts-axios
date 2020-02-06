@@ -8,6 +8,7 @@ import transform from './transform'
 
 export default function dispatchRequest(config: AxiosRequestConfig): AxiosPromise {
     // TODO
+    throwIfCancellationRequested(config) // 发送请求前检查 config.cancelToken 是否已经使用过，如果已经被用过则不用发请求，直接抛异常
     processConfig(config)
     return xhr(config).then(res => {
         return transformResponseData(res)
@@ -47,4 +48,11 @@ function transformResponseData(res: AxiosResponse): AxiosResponse {
     // 在默认配置中 config.defaults.transformResponse 中处理响应的 data
     res.data = transform(res.data, res.headers, res.config.transformResponse)
     return res
+}
+
+// 发送请求前检查 config.cancelToken 是否已经使用过，如果已经被用过则不用发请求，直接抛异常
+function throwIfCancellationRequested(config: AxiosRequestConfig): void {
+    if(config.cancelToken) {
+        config.cancelToken.throwIfRequested()
+    }
 }

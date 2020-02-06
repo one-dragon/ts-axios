@@ -33,6 +33,9 @@ export interface AxiosRequestConfig {
     // 而 transformResponse 允许你在把响应数据传递给 then 或者 catch 之前对它们进行修改。
     // 当值为数组的时候，数组的每一个函数都是一个转换函数，数组中的函数就像管道一样依次执行，前者的输出作为后者的输入。
     transformResponse?: AxiosTransformer | AxiosTransformer[]
+    // axios.CancelToken 是一个类，直接把它实例化的对象传给请求配置中的 cancelToken 属性，来取消请求
+    cancelToken?: CancelToken
+
 
     [propName: string]: any
 }
@@ -105,6 +108,10 @@ export interface AxiosInstance extends Axios {
 // 静态方法 接口定义
 export interface AxiosStatic extends AxiosInstance {
     create(config?: AxiosRequestConfig): AxiosInstance
+
+    CancelToken: CancelTokenStatic
+    Cancel: CancelStatic
+    isCancel: (value: any) =>boolean
 }
 
 // 拦截器管理 接口定义
@@ -122,4 +129,42 @@ export interface ResolvedFn<T> {
 // 请求拦截器、响应拦截器的参数类型是 any 类型的
 export interface RejectedFn {
     (error: any): any
+}
+
+
+// 实例类型的接口定义
+// 构造函数参数支持传入一个 executor 方法，该方法的参数是一个取消函数 c，我们可以在 executor 方法执行的内部拿到这个取消函数 c，赋值给我们外部定义的 cancel 变量，之后我们可以通过调用这个 cancel 方法来取消请求。
+export interface CancelToken {
+    promise: Promise<Cancel>
+    reason?: Cancel
+
+    throwIfRequested(): void
+}
+// 取消方法的接口定义
+export interface Canceler {
+    (message?: string): void
+}
+// 是 CancelToken 类构造函数参数的接口定义
+export interface CancelExecutor {
+    (cancel: Canceler): void
+}
+// 是 CancelToken 类静态方法 source 函数的返回值类型
+export interface CancelTokenSource {
+    token: CancelToken,
+    cancel: Canceler
+}
+// 是 CancelToken 类的类类型
+export interface CancelTokenStatic {
+    new(executor: CancelExecutor): CancelToken
+
+    source(): CancelTokenSource
+}
+
+// 是实例类型的接口定义
+export interface Cancel {
+    message?: string
+}
+// 是类类型的接口定义，并且给 axios 扩展了多个静态方法
+export interface CancelStatic {
+    new(message?: string): Cancel
 }
