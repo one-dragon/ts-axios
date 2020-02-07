@@ -39,7 +39,7 @@ stratKeysFromVal2.forEach(key => {
 })
 
 // 自定义配置的一些属性 指向 deepMergeStrat合并策略
-const stratKeysDeepMerge = ['headers']
+const stratKeysDeepMerge = ['headers', 'auth']
 stratKeysDeepMerge.forEach(key =>{
     strats[key] = deepMergeStrat
 })

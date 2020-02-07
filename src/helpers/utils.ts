@@ -14,6 +14,11 @@ export function isPlainObject(val: any): val is Object {
     return toString.call(val) === '[object Object]'
 }
 
+// FormData 判断
+export function isFormData(val: any): val is FormData {
+    return typeof val !== 'undefined' && val instanceof FormData
+}
+
 // 混合对象：把 from 里的属性扩展到 to 中
 export function extend<T, U>(to: T, from: U): T & U {
     for(const key in from) {

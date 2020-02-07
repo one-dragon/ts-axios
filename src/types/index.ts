@@ -38,7 +38,11 @@ export interface AxiosRequestConfig {
     withCredentials?: boolean
     xsrfCookieName?: string // 表示存储 token 的 cookie 名称
     xsrfHeaderName?: string // 表示请求 headers 中 token 对应的 header 名称
-
+    onDownloadProgress?: (e: ProgressEvent) => void // 下载进度
+    onUploadProgress?: (e: ProgressEvent) => void // 上传进度
+    // 往 HTTP 的请求 header 中添加 Authorization 属性，它的值为 Basic 加密串
+    // 这里的加密串是 username:password base64 加密后的结果
+    auth?: AxiosBasicCredentials
 
     [propName: string]: any
 }
@@ -170,4 +174,10 @@ export interface Cancel {
 // 是类类型的接口定义，并且给 axios 扩展了多个静态方法
 export interface CancelStatic {
     new(message?: string): Cancel
+}
+
+// 认证接口定义
+export interface AxiosBasicCredentials {
+    username: string
+    password: string
 }

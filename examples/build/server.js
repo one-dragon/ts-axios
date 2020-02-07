@@ -2,6 +2,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
+const multipart = require('connect-multiparty')
 const webpack = require('webpack')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
@@ -10,11 +11,11 @@ const WebpackConfig = require('./webpack.config')
 require('./server2')
 
 const app = express()
-const ejs = require('ejs');
+const ejs = require('ejs')
 const router = require('./router')
 const compiler = webpack(WebpackConfig)
 
-const { EXAMPLES_PATH, OUTPUT_PATH } = require('./const')
+const { EXAMPLES_PATH, UPLOAD_FILE_PATH, OUTPUT_PATH } = require('./const')
 
 app.use(webpackDevMiddleware(compiler, {
     publicPath: `/${OUTPUT_PATH}/`,
@@ -42,6 +43,9 @@ app.engine('html', ejs.renderFile);
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
+app.use(multipart({
+    uploadDir: UPLOAD_FILE_PATH
+}))
 app.use(router)
 
 const port = process.env.PORT || 8080
