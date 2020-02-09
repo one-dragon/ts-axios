@@ -29,4 +29,13 @@ module.exports = function (router) {
         res.status(304)
         res.end()
     })
+
+
+    // 静态方法扩展 axios.all、axios.spread、axios.Axios、axios.getUri
+    router.get('/more/A', function (req, res) {
+        res.end('A')
+    })
+    router.get('/more/B', function (req, res) {
+        res.end('B')
+    })
 }

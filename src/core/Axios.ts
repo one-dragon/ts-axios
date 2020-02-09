@@ -2,7 +2,7 @@
 // 文件名首字母大写代表是个类
 
 import { AxiosPromise, AxiosRequestConfig, AxiosResponse, Method, ResolvedFn, RejectedFn } from '../types'
-import dispatchRequest from './dispatchRequest'
+import dispatchRequest, { transformURL } from './dispatchRequest'
 import InterceptorManager from './interceptorManager'
 import mergeConfig from './mergeConfig'
 
@@ -117,5 +117,12 @@ export default class Axios {
             url,
             data
         }))
+    }
+
+
+    // 不发送请求的前提下根据传入的配置返回一个 url
+    getUri(config?: AxiosRequestConfig): string {
+        config = mergeConfig(this.defaults, config)
+        return transformURL(config)
     }
 }

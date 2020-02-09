@@ -108,6 +108,8 @@ export interface Axios {
     put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>
 
     patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise<T>
+
+    getUri(config?: AxiosRequestConfig): string // 不发送请求的前提下根据传入的配置返回一个 url
 }
 
 // 继承 Axios 的 AxiosInstance 混合接口定义
@@ -118,13 +120,25 @@ export interface AxiosInstance extends Axios {
     <T = any>(url: string, config?: AxiosRequestConfig): AxiosPromise<T>
 }
 
+// AxiosStatic.Axios 的类类型接口定义
+export interface AxiosClassStatic {
+    new(config: AxiosRequestConfig): Axios
+}
+
 // 静态方法 接口定义
 export interface AxiosStatic extends AxiosInstance {
     create(config?: AxiosRequestConfig): AxiosInstance
 
+    // 取消请求
     CancelToken: CancelTokenStatic
     Cancel: CancelStatic
     isCancel: (value: any) =>boolean
+
+    all<T>(promises: Array<T | Promise<T>>): Promise<T[]>
+
+    spread<T,R>(callback: (...arg: T[]) => R): (arr: T[]) => R
+
+    Axios: AxiosClassStatic
 }
 
 // 拦截器管理 接口定义
