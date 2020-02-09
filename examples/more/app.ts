@@ -1,6 +1,7 @@
 
 
 import axios, { AxiosError } from '../../src/index'
+import qs from 'qs'
 
 /*
     验证跨域请求时，携带cookie
@@ -67,6 +68,7 @@ axios.post('/more/post', {
 /*
     自定义合法状态码规则
 */
+/*
 axios.get('/more/304').then(res => {
     console.log(res)
 }).catch((e: AxiosError) => {
@@ -80,4 +82,39 @@ axios.get('/more/304', {
     console.log(res)
 }).catch((e: AxiosError) => {
     console.log(e.message)
+})
+*/
+
+
+
+/*
+    自定义参数序列化规则
+*/
+axios.get('/more/get', { // URLSearchParams 参数
+    params: new URLSearchParams('a=b&c=d')
+}).then(res => {
+    console.log(res)
+})
+axios.get('/more/get', { // 普通对象 参数
+    params: {
+        a: 1,
+        b: 2,
+        c: ['a', 'b', 'c']
+    }
+}).then(res => {
+    console.log(res)
+})
+const instance = axios.create({ // 自定义 参数
+    paramsSerializer(params) {
+        return qs.stringify(params, { arrayFormat: 'brackets' })
+    }
+})
+instance.get('/more/get', {
+    params: {
+        a: 1,
+        b: 2,
+        c: ['a', 'b', 'c']
+    }
+}).then(res => {
+    console.log(res)
 })

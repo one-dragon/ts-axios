@@ -1,5 +1,5 @@
 
-import { isDate, isPlainObject } from './utils'
+import { isDate, isPlainObject, isURLSearchParams } from './utils'
 
 interface URLOrigin {
     protocol: string
@@ -21,7 +21,7 @@ function encode(val: string): string {
 }
 
 // 处理请求 url 参数，最终生成如：/base/get?foo=bar
-/*
+/*  默认
     params: {
         foo: ['bar', 'baz'], // ?foo[]=bar&foo[]=baz
         bar: { foo: 'foo' }, // ?bar=%7B%22foo%22:%22foo%22%7D，bar 后面拼接的是 { foo: 'foo' } encode 后的结果
@@ -32,42 +32,52 @@ function encode(val: string): string {
     丢弃 url 中的哈希标记，如: url: '/base/get#hash' => '/base/get'
     保留 url 中已存在的参数，如: url: '/base/get?foo=bar' => '/base/get?foo=bar'
 */
-export function buildURL(url: string, params?: any): string {
+// paramsSerializer: 自定义参数序列化规则
+export function buildURL(url: string, params?: any, paramsSerializer?: (params: any) => string): string {
     if(!params) {
         return url
     }
 
-    // 创建键值对数组
-    const parts: string[] = []
+    let serializedParams
     
-    Object.keys(params).forEach(key => {
-        const val = params[key]
-        // 入参值为 null、undefined 忽略并跳到下个循环
-        if(val === null || val === undefined) {
-            return
-        }
-        let values = []
-        // 处理入参值，最终变成数组，进行统一处理
-        // 处理key，入参值为数组，则 key = 'key[]'
-        if(Array.isArray(val)) {
-            values = val
-            key += '[]'
-        }else {
-            values = [val]
-        }
-        // 循环处理值，并存入 parts => ['key=val']
-        values.forEach((val) => {
-            if(isDate(val)) { // 日期类型处理
-                val = val.toISOString()
-            }else if(isPlainObject(val)) { // 对象类型处理
-                val = JSON.stringify(val)
-            }
-            parts.push(`${encode(key)}=${encode(val)}`)
-        })
-    })
+    if(paramsSerializer) {
+        serializedParams = paramsSerializer(params)
+    } else if (isURLSearchParams(params)) { // 判断 URLSearchParams 对象实例
+        serializedParams = params.toString()
+    } else {
+        // 创建键值对数组
+        const parts: string[] = []
 
-    // 如 parts: ['a=1', 'b={b:1}'] => 'a=1&b={b:1}'
-    let serializedParams = parts.join('&')
+        Object.keys(params).forEach(key => {
+            const val = params[key]
+            // 入参值为 null、undefined 忽略并跳到下个循环
+            if (val === null || val === undefined) {
+                return
+            }
+            let values = []
+            // 处理入参值，最终变成数组，进行统一处理
+            // 处理key，入参值为数组，则 key = 'key[]'
+            if (Array.isArray(val)) {
+                values = val
+                key += '[]'
+            } else {
+                values = [val]
+            }
+            // 循环处理值，并存入 parts => ['key=val']
+            values.forEach((val) => {
+                if (isDate(val)) { // 日期类型处理
+                    val = val.toISOString()
+                } else if (isPlainObject(val)) { // 对象类型处理
+                    val = JSON.stringify(val)
+                }
+                parts.push(`${encode(key)}=${encode(val)}`)
+            })
+        })
+
+        // 如 parts: ['a=1', 'b={b:1}'] => 'a=1&b={b:1}'
+        serializedParams = parts.join('&')
+    }
+
     if(serializedParams) {
         const markIndex = url.indexOf('#')
         if(markIndex !== -1) { // 处理 hash
