@@ -43,6 +43,8 @@ export interface AxiosRequestConfig {
     // 往 HTTP 的请求 header 中添加 Authorization 属性，它的值为 Basic 加密串
     // 这里的加密串是 username:password base64 加密后的结果
     auth?: AxiosBasicCredentials
+    // 自定义合法状态码规则
+    validateStatus?: (status: number) => boolean
 
     [propName: string]: any
 }

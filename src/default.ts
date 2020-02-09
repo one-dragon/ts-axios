@@ -37,7 +37,12 @@ const defaults: AxiosRequestConfig = {
         function (data: any): any {
             return transformResponse(data)
         }
-    ]
+    ],
+    // 自定义合法状态码规则，比如认为 304 也是一个合法的状态码
+    // 默认在 200 和 300 之间是一个合法值，在这个区间之外则创建一个错误
+    validateStatus(status: number): boolean {
+        return status >= 200 && status < 300
+    }
 }
 
 // 没 data 的请求默认配置

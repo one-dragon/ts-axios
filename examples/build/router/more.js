@@ -8,6 +8,7 @@ module.exports = function (router) {
         res.json(req.cookies)
     })
 
+
     // HTTP 授权 Authorization
     router.post('/more/post', function (req, res) {
         const auth = req.headers.authorization
@@ -20,5 +21,12 @@ module.exports = function (router) {
             res.status(401)
             res.end('UnAuthorization')
         }
+    })
+
+
+    // 自定义合法校验规则
+    router.get('/more/304', function (req, res) {
+        res.status(304)
+        res.end()
     })
 }

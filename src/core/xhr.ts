@@ -30,7 +30,8 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             xsrfHeaderName,
             onDownloadProgress,
             onUploadProgress,
-            auth
+            auth,
+            validateStatus
         } = config
 
         const request = new XMLHttpRequest()
@@ -117,7 +118,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             }
         }
 
-        // 处理请求头 使用FormData删除'Content-Type'、判断withCredentials或为同域，设置xsrf相关内容、自定义请求头设置
+        // 处理请求头 使用FormData删除'Content-Type'、判断withCredentials或为同域，设置xsrf相关内容、Authorization、自定义请求头设置
         function processHeaders(): void {
             // 使用 FormData 上传文件的时候，删除自定义的 headers['Content-Type']
             // 浏览器会自动把请求 headers 中的 Content-Type 设置为 multipart/form-data
@@ -165,7 +166,8 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         
         // 响应数据的成功、错误处理
         function handleResponse(response: AxiosResponse): void {
-            if(response.status >= 200 && response.status < 300) {
+            // if(response.status >= 200 && response.status < 300) {
+            if (!validateStatus || validateStatus(response.status)) {
                 resolve(response)
             }else {
                 // reject(new Error(`Request failed with status code ${response.status}`))
