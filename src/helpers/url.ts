@@ -91,6 +91,18 @@ export function buildURL(url: string, params?: any, paramsSerializer?: (params: 
 }
 
 
+// 判断 url 为绝对地址
+export function isAbsoluteURL(url: string): boolean {
+    return /(^[a-z][a-z\d\+\-\.]*:)?\/\//i.test(url)
+}
+
+
+// 拼接 url
+export function combineURL(baseURL: string, relativeURL?: string): string {
+    return relativeURL ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '') : baseURL
+}
+
+
 // 判断 请求url和当前页面地址url 是否为同源
 export function isURLSameOrigin(requestURL: string): boolean {
     const parsedOrigin = resolveURL(requestURL)
