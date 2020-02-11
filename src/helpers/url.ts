@@ -1,23 +1,22 @@
-
 import { isDate, isPlainObject, isURLSearchParams } from './utils'
 
 interface URLOrigin {
-    protocol: string
-    host: string
+  protocol: string
+  host: string
 }
 
 // encode 编码
 function encode(val: string): string {
-    // 对于字符 @ : $ ,   [ ] 不encode
-    // 并把'空格'转换成 '+'
-    return encodeURIComponent(val)
-        .replace(/%40/g, '@')
-        .replace(/%3A/ig, ':')
-        .replace(/%24/g, '$')
-        .replace(/%2C/ig, ',')
-        .replace(/%20/g, '+') // 把'空格'转换成 '+'
-        .replace(/%5B/ig, '[')
-        .replace(/%5D/ig, ']')
+  // 对于字符 @ : $ ,   [ ] 不encode
+  // 并把'空格'转换成 '+'
+  return encodeURIComponent(val)
+    .replace(/%40/g, '@')
+    .replace(/%3A/gi, ':')
+    .replace(/%24/g, '$')
+    .replace(/%2C/gi, ',')
+    .replace(/%20/g, '+') // 把'空格'转换成 '+'
+    .replace(/%5B/gi, '[')
+    .replace(/%5D/gi, ']')
 }
 
 // 处理请求 url 参数，最终生成如：/base/get?foo=bar
@@ -33,80 +32,88 @@ function encode(val: string): string {
     保留 url 中已存在的参数，如: url: '/base/get?foo=bar' => '/base/get?foo=bar'
 */
 // paramsSerializer: 自定义参数序列化规则
-export function buildURL(url: string, params?: any, paramsSerializer?: (params: any) => string): string {
-    if(!params) {
-        return url
-    }
-
-    let serializedParams
-    
-    if(paramsSerializer) {
-        serializedParams = paramsSerializer(params)
-    } else if (isURLSearchParams(params)) { // 判断 URLSearchParams 对象实例
-        serializedParams = params.toString()
-    } else {
-        // 创建键值对数组
-        const parts: string[] = []
-
-        Object.keys(params).forEach(key => {
-            const val = params[key]
-            // 入参值为 null、undefined 忽略并跳到下个循环
-            if (val === null || val === undefined) {
-                return
-            }
-            let values = []
-            // 处理入参值，最终变成数组，进行统一处理
-            // 处理key，入参值为数组，则 key = 'key[]'
-            if (Array.isArray(val)) {
-                values = val
-                key += '[]'
-            } else {
-                values = [val]
-            }
-            // 循环处理值，并存入 parts => ['key=val']
-            values.forEach((val) => {
-                if (isDate(val)) { // 日期类型处理
-                    val = val.toISOString()
-                } else if (isPlainObject(val)) { // 对象类型处理
-                    val = JSON.stringify(val)
-                }
-                parts.push(`${encode(key)}=${encode(val)}`)
-            })
-        })
-
-        // 如 parts: ['a=1', 'b={b:1}'] => 'a=1&b={b:1}'
-        serializedParams = parts.join('&')
-    }
-
-    if(serializedParams) {
-        const markIndex = url.indexOf('#')
-        if(markIndex !== -1) { // 处理 hash
-            url = url.slice(0, markIndex)
-        }
-        // 判断 url 是否已拼接参数
-        url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams
-    }
-
+export function buildURL(
+  url: string,
+  params?: any,
+  paramsSerializer?: (params: any) => string
+): string {
+  if (!params) {
     return url
-}
+  }
 
+  let serializedParams
+
+  if (paramsSerializer) {
+    // 配置自定义参数序列化规则
+    serializedParams = paramsSerializer(params)
+  } else if (isURLSearchParams(params)) {
+    // 判断 URLSearchParams 对象实例
+    serializedParams = params.toString()
+  } else {
+    // 创建键值对数组
+    const parts: string[] = []
+
+    Object.keys(params).forEach(key => {
+      const val = params[key]
+      // 入参值为 null、undefined 忽略并跳到下个循环
+      if (val === null || val === undefined) {
+        return
+      }
+      let values = []
+      // 处理入参值，最终变成数组，进行统一处理
+      // 处理key，入参值为数组，则 key = 'key[]'
+      if (Array.isArray(val)) {
+        values = val
+        key += '[]'
+      } else {
+        values = [val]
+      }
+      // 循环处理值，并存入 parts => ['key=val']
+      values.forEach(val => {
+        if (isDate(val)) {
+          // 日期类型处理
+          val = val.toISOString()
+        } else if (isPlainObject(val)) {
+          // 对象类型处理
+          val = JSON.stringify(val)
+        }
+        parts.push(`${encode(key)}=${encode(val)}`)
+      })
+    })
+
+    // 如 parts: ['a=1', 'b={b:1}'] => 'a=1&b={b:1}'
+    serializedParams = parts.join('&')
+  }
+
+  if (serializedParams) {
+    const markIndex = url.indexOf('#')
+    if (markIndex !== -1) {
+      // 处理 hash
+      url = url.slice(0, markIndex)
+    }
+    // 判断 url 是否已拼接参数
+    url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams
+  }
+
+  return url
+}
 
 // 判断 url 为绝对地址
 export function isAbsoluteURL(url: string): boolean {
-    return /(^[a-z][a-z\d\+\-\.]*:)?\/\//i.test(url)
+  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url)
 }
-
 
 // 拼接 url
 export function combineURL(baseURL: string, relativeURL?: string): string {
-    return relativeURL ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '') : baseURL
+  return relativeURL ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '') : baseURL
 }
-
 
 // 判断 请求url和当前页面地址url 是否为同源
 export function isURLSameOrigin(requestURL: string): boolean {
-    const parsedOrigin = resolveURL(requestURL)
-    return (parsedOrigin.protocol === currentOrigin.protocol && parsedOrigin.host === currentOrigin.host)
+  const parsedOrigin = resolveURL(requestURL)
+  return (
+    parsedOrigin.protocol === currentOrigin.protocol && parsedOrigin.host === currentOrigin.host
+  )
 }
 
 const urlParsingNode = document.createElement('a')
@@ -114,11 +121,11 @@ const currentOrigin = resolveURL(window.location.href) // 获取当前页面的�
 
 // 利用a标签特性解析地址
 function resolveURL(url: string): URLOrigin {
-    urlParsingNode.setAttribute('href', url)
-    const { protocol, host } = urlParsingNode
+  urlParsingNode.setAttribute('href', url)
+  const { protocol, host } = urlParsingNode
 
-    return {
-        protocol,
-        host
-    }
+  return {
+    protocol,
+    host
+  }
 }

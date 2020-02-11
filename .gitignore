@@ -10,5 +10,6 @@ compiled
 .awcache
 .rpt2_cache
 docs
-src-base
-src-no-T
+a-src-base
+a-src-no-T
+package-postinstall.json

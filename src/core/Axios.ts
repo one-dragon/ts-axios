@@ -1,128 +1,148 @@
-
 // 文件名首字母大写代表是个类
 
-import { AxiosPromise, AxiosRequestConfig, AxiosResponse, Method, ResolvedFn, RejectedFn } from '../types'
+import {
+  AxiosPromise,
+  AxiosRequestConfig,
+  AxiosResponse,
+  Method,
+  ResolvedFn,
+  RejectedFn
+} from '../types'
 import dispatchRequest, { transformURL } from './dispatchRequest'
 import InterceptorManager from './interceptorManager'
 import mergeConfig from './mergeConfig'
 
 // 拦截器 接口定义
 interface Interceptors {
-    request: InterceptorManager<AxiosRequestConfig>
-    response: InterceptorManager<AxiosResponse>
+  request: InterceptorManager<AxiosRequestConfig>
+  response: InterceptorManager<AxiosResponse>
 }
 
 // 拦截器链 接口定义
 interface PromiseChain<T> {
-    resolved: ResolvedFn<T> | ((config: AxiosRequestConfig) => AxiosPromise)
-    rejected?: RejectedFn
+  resolved: ResolvedFn<T> | ((config: AxiosRequestConfig) => AxiosPromise)
+  rejected?: RejectedFn
 }
 
 export default class Axios {
-    defaults: AxiosRequestConfig // 默认配置定义
-    interceptors: Interceptors // 拦截器定义
+  defaults: AxiosRequestConfig // 默认配置定义
+  interceptors: Interceptors // 拦截器定义
 
-    constructor(initConfig: AxiosRequestConfig) {
-        // 初始化默认配置
-        this.defaults = initConfig
+  constructor(initConfig: AxiosRequestConfig) {
+    // 初始化默认配置
+    this.defaults = initConfig
 
-        // 初始化拦截器
-        this.interceptors = {
-            request: new InterceptorManager<AxiosRequestConfig>(),
-            response: new InterceptorManager<AxiosResponse>()
-        }
+    // 初始化拦截器
+    this.interceptors = {
+      request: new InterceptorManager<AxiosRequestConfig>(),
+      response: new InterceptorManager<AxiosResponse>()
+    }
+  }
+
+  // request(config: AxiosRequestConfig): AxiosPromise {
+  //     return dispatchRequest(config)
+  // }
+  // 支持传入 url和config
+  // 重载
+  request(url: any, config?: any): AxiosPromise {
+    if (typeof url === 'string') {
+      config = config || {}
+      config.url = url
+    } else {
+      config = url
     }
 
-    // request(config: AxiosRequestConfig): AxiosPromise {
-    //     return dispatchRequest(config)
-    // }
-    // 支持传入 url和config
-    // 重载
-    request(url: any, config?: any): AxiosPromise {
-        if(typeof url === 'string') {
-            config = config || {}
-            config.url = url
-        }else {
-            config = url
-        }
+    config = mergeConfig(this.defaults, config) // 合并配置
+    config.method = config.method.toLowerCase() // 强制转化成小写，否则会影响 flattenHeaders 函数逻辑
 
-        config = mergeConfig(this.defaults, config) // 合并配置
-
-        /*  添加拦截器链式调用的逻辑
+    /*  添加拦截器链式调用的逻辑
             ... (config)=> request-interceptor2 (config)=> request-interceptor1 (config)=>
             send-request (response)=>
             response-interceptor1 (response)=> ... (response)=> handle-response
         */
-        const chain: PromiseChain<any>[] = [{
-            resolved: dispatchRequest,
-            rejected: undefined
-        }]
-        // 请求拦截器，后添加的先执行
-        // forEach 为类中内部实现的函数
-        this.interceptors.request.forEach(interceptor => {
-            chain.unshift(interceptor)
-        })
-        // 响应拦截器，先添加的先执行
-        // forEach 为类中内部实现的函数
-        this.interceptors.response.forEach(interceptor => {
-            chain.push(interceptor)
-        })
-        // 定义一个已经 resolve 的 promise，来循环依次执行拦截器链
-        let promise = Promise.resolve(config)
-        while(chain.length) {
-            const { resolved, rejected } = chain.shift()! // 类型断言不为空，否则报错
-            promise = promise.then(resolved, rejected)
-        }
-        return promise
-        // return dispatchRequest(config)
+    const chain: PromiseChain<any>[] = [
+      {
+        resolved: dispatchRequest,
+        rejected: undefined
+      }
+    ]
+    // 请求拦截器，后添加的先执行
+    // forEach 为类中内部实现的函数
+    this.interceptors.request.forEach(interceptor => {
+      chain.unshift(interceptor)
+    })
+    // 响应拦截器，先添加的先执行
+    // forEach 为类中内部实现的函数
+    this.interceptors.response.forEach(interceptor => {
+      chain.push(interceptor)
+    })
+    // 定义一个已经 resolve 的 promise，来循环依次执行拦截器链
+    let promise = Promise.resolve(config)
+    while (chain.length) {
+      const { resolved, rejected } = chain.shift()! // 类型断言不为空，否则报错
+      promise = promise.then(resolved, rejected)
     }
+    return promise
+    // return dispatchRequest(config)
+  }
 
-    get(url: string, config?: AxiosRequestConfig): AxiosPromise {
-        return this._requestMethodWithoutData('get', url, config)
-    }
+  get(url: string, config?: AxiosRequestConfig): AxiosPromise {
+    return this._requestMethodWithoutData('get', url, config)
+  }
 
-    delete(url: string, config?: AxiosRequestConfig): AxiosPromise {
-        return this._requestMethodWithoutData('delete', url, config)
-    }
+  delete(url: string, config?: AxiosRequestConfig): AxiosPromise {
+    return this._requestMethodWithoutData('delete', url, config)
+  }
 
-    head(url: string, config?: AxiosRequestConfig): AxiosPromise {
-        return this._requestMethodWithoutData('head', url, config)
-    }
+  head(url: string, config?: AxiosRequestConfig): AxiosPromise {
+    return this._requestMethodWithoutData('head', url, config)
+  }
 
-    options(url: string, config?: AxiosRequestConfig): AxiosPromise {
-        return this._requestMethodWithoutData('options', url, config)
-    }
-    _requestMethodWithoutData(method: Method, url: string, config?: AxiosRequestConfig): AxiosPromise {
-        return this.request(Object.assign(config || {}, {
-            method,
-            url
-        }))
-    }
+  options(url: string, config?: AxiosRequestConfig): AxiosPromise {
+    return this._requestMethodWithoutData('options', url, config)
+  }
+  _requestMethodWithoutData(
+    method: Method,
+    url: string,
+    config?: AxiosRequestConfig
+  ): AxiosPromise {
+    return this.request(
+      Object.assign(config || {}, {
+        method,
+        url
+      })
+    )
+  }
 
+  post(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
+    return this._requestMethodWithData('post', url, data, config)
+  }
 
-    post(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
-        return this._requestMethodWithData('post', url, data, config)
-    }
+  put(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
+    return this._requestMethodWithData('put', url, data, config)
+  }
 
-    put(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
-        return this._requestMethodWithData('put', url, data, config)
-    }
+  patch(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
+    return this._requestMethodWithData('patch', url, data, config)
+  }
+  _requestMethodWithData(
+    method: Method,
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): AxiosPromise {
+    return this.request(
+      Object.assign(config || {}, {
+        method,
+        url,
+        data
+      })
+    )
+  }
 
-    patch(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
-        return this._requestMethodWithData('patch', url, data, config)
-    }
-    _requestMethodWithData(method: Method, url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
-        return this.request(Object.assign(config || {}, {
-            method,
-            url,
-            data
-        }))
-    }
-
-
-    // 不发送请求的前提下根据传入的配置返回一个 url
-    getUri(config?: AxiosRequestConfig): string {
-        config = mergeConfig(this.defaults, config)
-        return transformURL(config)
-    }
+  // 不发送请求的前提下根据传入的配置返回一个 url
+  getUri(config?: AxiosRequestConfig): string {
+    config = mergeConfig(this.defaults, config)
+    return transformURL(config)
+  }
 }
