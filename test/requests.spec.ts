@@ -44,7 +44,7 @@ describe('requests', () => {
       return e
     })
 
-    jasmine.Ajax.uninstall()
+    // jasmine.Ajax.uninstall()
 
     axios('/foo')
       .then(resolveSpy)
@@ -55,15 +55,42 @@ describe('requests', () => {
       expect(resolveSpy).not.toHaveBeenCalled()
       expect(rejectSpy).toHaveBeenCalled()
       expect(reason instanceof Error).toBeTruthy()
-      // expect((reason as AxiosError).message).toBe('Network Error')
-      expect((reason as AxiosError).message).toBe('Request failed with status code 404')
+      expect((reason as AxiosError).message).toBe('Network Error')
+      // expect((reason as AxiosError).message).toBe('Request failed with status code 404')
       // 匹配给定构造函数所创建的任何内容。你可以在内部使用toEqual或toBeCalledWith而不是文字值
       expect(reason.request).toEqual(expect.any(XMLHttpRequest))
 
-      jasmine.Ajax.install()
+      // jasmine.Ajax.install()
 
       done()
     }
+
+    getAjaxRequest().then(request => {
+      // @ts-ignore
+      request.eventBus.trigger('error')
+    })
+  })
+
+  test('should no response when return status code is 0', done => {
+    let response = false
+    axios('/foo')
+      .then(() => {
+        response = true
+      })
+      .catch(() => {
+        response = true
+      })
+
+    getAjaxRequest().then(request => {
+      request.respondWith({
+        status: 0
+      })
+
+      setTimeout(() => {
+        expect(response).toBeFalsy()
+        done()
+      }, 100)
+    })
   })
 
   test('should reject when request timeout', done => {
@@ -255,6 +282,38 @@ describe('requests', () => {
       })
     return getAjaxRequest().then(request => {
       expect(request.requestHeaders['Content-Type']).toBe('application/json')
+    })
+  })
+
+  test('should support array buffer response', done => {
+    let response: AxiosResponse
+
+    function str2ab(str: string) {
+      const buff = new ArrayBuffer(str.length * 2)
+      const view = new Uint16Array(buff)
+      for (let i = 0; i < str.length; i++) {
+        view[i] = str.charCodeAt(i)
+      }
+      return buff
+    }
+
+    axios('/foo', {
+      responseType: 'arraybuffer'
+    }).then(data => {
+      response = data
+    })
+
+    getAjaxRequest().then(request => {
+      request.respondWith({
+        status: 200,
+        // @ts-ignore
+        response: str2ab('Hello world')
+      })
+
+      setTimeout(() => {
+        expect(response.data.byteLength).toBe(22)
+        done()
+      }, 100)
     })
   })
 })
